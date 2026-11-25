@@ -53,3 +53,21 @@ output "private_route_table_id" {
 output "db_route_table_id" {
     value = aws_route_table.db.id
 }
+
+output "default_vpc_id" {
+
+    value = data.aws_vpc.default.id
+  
+}
+
+output "default_vpc_cidr_block" {
+
+    value = data.aws_vpc.default.cidr_block
+  
+}
+
+output "default_vpc_main_route_table" {
+
+    value = data.aws_route_table.default_vpc_main_route_table.id
+  
+}
