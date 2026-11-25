@@ -12,8 +12,28 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = merge(var.igw_tags, local.common_tags)
+  tags = merge(var.igw_tags, local.common_tags,
+  
+  {
+   Name = "${local.common_name}-igw"
+  }
+
+  )
 }
+
+resource "aws_eip" "main" {
+  domain = "vpc"
+
+    tags = merge(var.eip_tags, local.common_tags,
+  
+  {
+   Name = "${local.common_name}-eip(for NATGW)"
+  }
+    )
+
+}
+
+
 
 
 resource "aws_subnet" "public" {
@@ -33,7 +53,6 @@ resource "aws_subnet" "public" {
 
 resource "aws_subnet" "private" {
   count = length(var.cidr_block_private_subnet)
-
   vpc_id     = aws_vpc.main.id
   cidr_block = var.cidr_block_private_subnet[count.index]
   availability_zone = local.azs_info[count.index]
@@ -58,5 +77,110 @@ resource "aws_subnet" "db" {
    }
    )
 }
+
+
+resource "aws_db_subnet_group" "roboshop" {
+  name       = local.common_name
+  subnet_ids = aws_subnet.db[*].id
+  tags = local.common_tags
+}
+
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  tags = merge(var.public_route_table_tags,local.common_tags,
+   
+   {
+    Name = "${local.common_name}-public-route-table"
+   }
+
+  )
+}
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+  tags = merge(var.private_route_table_tags,local.common_tags,
+   
+   {
+    Name = "${local.common_name}-private-route-table"
+   }
+
+  )
+}
+
+resource "aws_route_table" "db" {
+  vpc_id = aws_vpc.main.id
+  tags = merge(var.db_route_table_tags,local.common_tags,
+   
+   {
+    Name = "${local.common_name}-db-route-table"
+   }
+
+  )
+}
+
+
+resource "aws_route_table_association" "public" {
+  count = length(aws_subnet.public)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+
+resource "aws_route_table_association" "private" {
+  count = length(aws_subnet.private)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
+}
+
+
+resource "aws_route_table_association" "db" {
+  count = length(aws_subnet.db)
+  subnet_id      = aws_subnet.db[count.index].id
+  route_table_id = aws_route_table.db.id
+}
+
+
+
+resource "aws_nat_gateway" "main" {
+
+  allocation_id = aws_eip.main.id
+  subnet_id = aws_subnet.public[0].id
+
+  tags = merge(var.natgw_tags, local.common_tags,
+  
+  {
+   Name = "${local.common_name}-natgw"
+  }
+
+  )
+
+
+  depends_on = [ aws_internet_gateway.main ]
+  
+  
+}
+
+resource "aws_route" "public" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id = aws_internet_gateway.main.id
+
+}
+
+resource "aws_route" "private" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.main.id
+}
+
+resource "aws_route" "db" {
+  route_table_id         = aws_route_table.db.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.main.id
+
+}
+
+
 
 

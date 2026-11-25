@@ -39,12 +39,17 @@ variable "cidr_block_public_subnet" {
     default = ["10.0.1.0/24","10.0.2.0/24"]
 }
 
-variable "region_public_subnet" {
 
-    type = list
-  
-    default = ["us-east-1a","us-east-1b"]
+variable "public_subnet_tags" {
+      type = map
+
+    default = {}
+
 }
+
+
+
+
 
 
 variable "cidr_block_private_subnet" {
@@ -52,37 +57,6 @@ variable "cidr_block_private_subnet" {
     type = list
   
     default = ["10.0.11.0/24","10.0.12.0/24"]
-}
-
-variable "region_private_subnet" {
-
-    type = list
-  
-    default = ["us-east-1a","us-east-1b"]
-}
-
-
-
-variable "cidr_block_db_subnet" {
-
-    type = list
-  
-    default = ["10.0.21.0/24","10.0.22.0/24"]
-}
-
-variable "region_db_subnet" {
-
-    type = list
-  
-    default = ["us-east-1a","us-east-1b"]
-}
-
-
-variable "public_subnet_tags" {
-      type = map
-
-    default = {}
-
 }
 
 
@@ -93,6 +67,21 @@ variable "private_subnet_tags" {
 
 }
 
+
+
+
+
+
+
+variable "cidr_block_db_subnet" {
+
+    type = list
+  
+    default = ["10.0.21.0/24","10.0.22.0/24"]
+}
+
+
+
 variable "db_subnet_tags" {
       type = map
 
@@ -100,6 +89,41 @@ variable "db_subnet_tags" {
 
 }
 
+variable "public_route_table_tags" {
+      type = map
+
+    default = {}
+
+  
+}
+
+variable "private_route_table_tags" {
+        type = map
+
+    default = {}
+
+}
+
+variable "db_route_table_tags" {
+        type = map
+
+    default = {}
+
+}
+
+variable "eip_tags" {
+        type = map
+
+    default = {}
+
+}
+
+variable "natgw_tags" {
+          type = map
+
+    default = {}
+
+}
      
 
      
